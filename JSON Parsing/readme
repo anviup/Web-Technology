@@ -1,0 +1,2 @@
+HTML/JavaScript program, which takes the URL of a JSON document containing US Airlines information, parses the JSON file, and extracts the list of airlines, displaying them in a table.
+Used JSON.parse parser and Synchronous XMLHttpRequest for the implementation.
