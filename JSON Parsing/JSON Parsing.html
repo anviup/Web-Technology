@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JSON Parsing - HW4</title>    
+    <style>
+        #myForm{
+            margin-left: 550px;
+            margin-top: 250px;
+        }
+    </style>
+</head>    
+<body>    
+<script> 
+function validateRequest(){
+    var url = document.getElementById("JSONurl").value;
+    if (url == ""){
+        window.alert("ERROR - Input JSON file!!");
+        return false;
+    }
+    else{
+        loadJSON(url);
+    }
+} 
+       
+function loadJSON(url){
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.overrideMimeType("application/json");
+    xmlhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+        var jsonObj = JSON.parse(this.responseText);
+        readJSON(jsonObj);
+       }
+    };    
+    try{
+        xmlhttp.open("GET", url, false); 
+        xmlhttp.send();        
+    }    
+    catch(error){
+        window.alert("Ensure the file is present in the same directory - "+ error.message);
+    } 
+}
+
+function readJSON(jsonObj)
+{
+    jsonObj.onload = generateHTML(jsonObj);
+    var myWidget = window.open("","Airline-List","width=1000,height=1200,scrollbars=yes");
+    myWidget.document.write(html_obj);
+}  
+
+function generateHTML(jsonObj)
+{    
+    table_keys = jsonObj.Mainline.Table; 
+    if(!('Row' in table_keys))
+        {
+            window.alert("No content found! - 'Row' key does not exist!!");
+            exit(0);
+        }
+    else if(!('Header' in table_keys))
+        {
+            window.alert("No headers found! - 'Header' key does not exist!!");
+            exit(0);
+        }
+    
+    headers_list = jsonObj.Mainline.Table.Header.Data; //array of headers
+    airlinesData = jsonObj.Mainline.Table.Row; //array of airline data - @each index there is data for 1 airline
+   
+    html_obj ="<html><head><title>Airline List</title></head><body>";
+    html_obj+="<table border='3'>";
+    html_obj+="<tbody>"; 
+    
+    html_obj+="<tr>";
+    for(i=0;i<headers_list.length;i++)
+        {
+            header = headers_list[i];            
+            html_obj+="<th>"+header+"</th>";
+        }
+    html_obj+="</tr>"; 
+    
+    img_width=300; img_height=400;
+    for(j=0;j<airlinesData.length;j++)
+        {
+            airlineNode = airlinesData[j];
+            html_obj+="<tr>";
+            var airlineNode_Keys = Object.keys(airlineNode);
+            for(k=0;k<airlineNode_Keys.length;k++)
+                {
+                    header = airlineNode_Keys[k];
+                    if(header=="Airline")
+                        {
+                            html_obj+="<td>"+airlineNode[header]+"</td>";
+                        }                  
+                    
+                    else if(header=="IATA")
+                        {
+                            html_obj+="<td>"+airlineNode[header]+"</td>";
+                        }
+                    
+                    else if(header=="Hubs")
+                        {
+                            var hub_key = Object.keys(airlineNode[header]);
+                            if(hub_key=="Hub")
+                                {
+                                    var hub_list = airlineNode[header][hub_key];
+                                    html_obj+="<td>";
+                                    for(h=0;h<hub_list.length;h++)
+                                        {
+                                            if(h==0)
+                                                {
+                                                    html_obj+="&#9679;<b>"+hub_list[h]+"</b><br>";
+                                                }
+                                            else if(h!=0)
+                                                {
+                                                    html_obj+="&#9679;"+hub_list[h]+"<br>";
+                                                }                                           
+                                        }
+                                    html_obj+="</td>";                                    
+                                }
+                             else
+                                {
+                                    window.alert("Incorrect Key for Hub!! - Cannot show page");
+                                    exit(0);
+                                }
+                        }
+                    
+                    else if(header=="Notes")
+                        {
+                            html_obj+="<td>"+airlineNode[header]+"</td>";
+                        }
+                    
+                    else if(header=="HomePage")
+                        {
+                            html_obj+="<td><a href='"+airlineNode[header]+"' alt='plane-image' target='_self'>                       "+airlineNode[header]+"</a></td>";
+                        }
+                    
+                    else if(header=="Plane")
+                        {
+                            html_obj+="<td><img src='"+airlineNode[header]+"'width="+img_width+"height="+img_height+"></td>";
+                        } 
+                    
+                    else
+                        {
+                            window.alert("Incorrect Key found!! - Cannot show page");
+                            exit(0);
+                        }
+                }
+            html_obj+="</tr>";       
+        }    
+    html_obj+="</tbody></table></body></html>";   
+}    
+</script> 
+    
+<form id="myForm" action="javascript:void(0);">
+    <p><b>Enter URL for Airlines List JSON File</b></p>
+    <input style="margin-left: 50px;" type="text" id="JSONurl"><br><br>    
+    <button style="margin-left: 75px;" onclick="validateRequest();">Submit Query</button>
+</form>    
+<noscript>    
+</body>
+</html>
